@@ -1,7 +1,14 @@
 import numpy as np
 import requests
 import justext as jt
+import re
 
+def imprimir_comienzo(texto):
+    texto = re.sub("\n",' ', texto)
+    x = [x for x in texto.split('.')[:3]]
+    txt = '. '.join(x) + '.'
+    txt = re.sub(' +', ' ', txt)
+    print(txt)        
 
 def limpiar_texto_web(text):
     stop = jt.get_stoplist("Spanish")
@@ -99,3 +106,48 @@ def clustering1(word2vec, textos, numero_clusters):
     x = np.array(textos)
     kmeans = KMeans(n_clusters=numero_clusters, random_state=0).fit(x)
     return kmeans.labels_
+
+from sklearn.cluster import SpectralClustering
+def clustering2(word2vec, textos, numero_clusters):
+    textos = [ limpiar_texto(x) for x in textos ]
+    textos = [ word2vec_linea(word2vec,linea) for linea in textos]
+    x = np.array(textos)
+    cl = SpectralClustering(assign_labels='discretize', n_clusters=numero_clusters,random_state=0).fit(x)
+    return cl.labels_
+
+
+from sklearn.metrics.pairwise import cosine_similarity
+def preparar_buscador1(train):
+    vec = CountVectorizer(max_features= 1000, preprocessor=limpiar_texto)    
+    x = vec.fit_transform(train)
+    tfidf = TfidfTransformer()
+    x = tfidf.fit_transform(x)
+    return vec, tfidf, x
+
+def consulta_buscador1(vec, tfidf, xdb, textosdb, texto, topk=3):
+    x = vec.transform([texto])
+    x = tfidf.transform(x)
+    s = cosine_similarity(xdb, x).reshape(-1)
+    ind = s.argsort()[-topk:][::-1]
+    for n, i in enumerate(ind):
+        print("\n(%d/%d) %f: " % (n+1, len(ind), s[i]))
+        imprimir_comienzo(textosdb[i])
+        
+def preparar_buscador2(word2vec, train):
+    train = [ limpiar_texto(x) for x in train ]
+    train = [ word2vec_linea(word2vec,linea) for linea in train]
+    x = np.array(train)    
+    return x
+
+def consulta_buscador2(word2vec, xdb, textosdb, texto, topk=3):
+    texto = [ limpiar_texto(texto) ]
+    texto = [ word2vec_linea(word2vec,linea) for linea in texto]
+    x = np.array(texto)
+   
+    s = cosine_similarity(xdb, x).reshape(-1)
+    ind = s.argsort()[-topk:][::-1]
+    for n, i in enumerate(ind):
+        print("\n(%d/%d) %f: " % (n+1, len(ind), s[i]))
+        imprimir_comienzo(textosdb[i])
+        
+        
