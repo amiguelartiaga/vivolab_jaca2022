@@ -132,6 +132,15 @@ def evaluar_clasificador3(word2vec, model, texto):
     x = np.array(train)
     print('predicción clasificador3: categoría %d' % model.predict(x)[0])
 
+
+def extraer_bert(bert, tokenizer, text):
+    text = "[CLS] "+ text+" [SEP]" 
+    tokens = tokenizer.tokenize(text)
+    indexed_tokens = tokenizer.convert_tokens_to_ids(tokens)
+    tokens_tensor = torch.tensor([indexed_tokens])
+    x = bert(tokens_tensor[:,:500], output_hidden_states=True)
+    return x.hidden_states[-1][0].detach().numpy()
+
 def extraer_bert1(bert, tokenizer, text):
     text = "[CLS] "+ text+" [SEP]" 
     tokens = tokenizer.tokenize(text)
