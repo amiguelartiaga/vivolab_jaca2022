@@ -233,9 +233,6 @@ def consulta_buscador2(word2vec, xdb, textosdb, texto, topk=3):
 
 def ver_similitud(e1, e2):
     e = np.concatenate([e1, e2])
-    print(e.shape)
-    from sklearn.metrics.pairwise import cosine_similarity
     d = cosine_similarity(e, e)
-    print(d.shape)
     import matplotlib.pyplot as plt
     plt.imshow(d, interpolation='none')
